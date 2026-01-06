@@ -46,7 +46,7 @@ end
 subset_all_after = subset;
 % subset_all_after = [subset_all_after subset];
 ```
-I will typically choose the set of beads in the turgid first, then plot them onto the larger set to then choose the corresponding unturgid set (insert photo).
+I will typically choose the set of beads in the turgid first, then plot them onto the larger set to then choose the corresponding unturgid set.
 ```matlab
 quickscatter(beads_subset_before); hold on; quickscatter(beads_subset_after);
 quickscatter(subset_all_before);
