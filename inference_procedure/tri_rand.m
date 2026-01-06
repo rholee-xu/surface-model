@@ -5,6 +5,9 @@ z_end = round(max(init_r(1,:)));
 [final_points,tri_before] = rand_sim(final_r,init_r,n_init*(z_end/2),dist_n);
 [final_points2,tri_before2] = rand_sim(final_r,init_r,n_init*(z_end/2),dist_n);
 
+[tri_before] = dtriangulation3D(final_points);
+[tri_before2] = dtriangulation3D(final_points2);
+
 
 %%
 loc_final = zeros(1,size(final_points,2));
@@ -71,5 +74,18 @@ Master_tri_i2 = tri_i2;
 locpb2 = loc_final2;
 Master_i_tri = i_tri;
 Master_i_tri2 = i_tri2;
+
+%%
+function [newT] = dtriangulation3D(points)
+
+DT = delaunayTriangulation(points(1,:)',points(2,:)',points(3,:)');
+[T,Xb] = convhull(points');
+TR = triangulation(T,points');
+F = faceNormal(TR);
+bot = F(:,3)<-0.8 | F(:,1)<-0.9;
+
+newTC = T(~bot,:);
+newT = triangulation(newTC,points');
+end
 
 end
