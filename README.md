@@ -1,12 +1,12 @@
 # surface-model code repository
 
-This repository contains code used to generate synthetic cells, run elastic deformation, and run triangulation inference
+This repository contains code used to run the surface-morphology inference scheme, and also code for the simulated cell generation and inference. Besides the code for the simulation portion and parameter sensitivity study portion, the inference procedure on experimental cells is detailed in full below. For any questions or concerns about the code, please email rxu3@wpi.edu.
 
 #### Elastic deformation code
-Run main_material_function.m with appropriate inputs
+To generate simulated cells, run main_material_function.m with appropriate inputs.
 
-#### Inference procedure
-Main inference procedure is detailed in sim100_run_example.m. This is used to generate the 100 cells, but can be done for any trial number, noise number, triangulation size. Data for ground truth is in the Run_dif_dradients.mat file
+#### Simulated inference procedure
+Main simulation inference procedure is detailed in sim100_run_example.m. This is used to generate the 100 cells, but can be done for any trial number, noise number, triangulation size. Data for ground truth is in the Run_dif_dradients.mat file
 
 # Code demo - FULL
 ## Loading raw data and bead selection
@@ -74,7 +74,7 @@ check_beads_order(subset_all_before,subset_all_after)
 ```
 
 ## Radius and tip calculation
-We must first calculate the radius of the tip and side before doing the automatic triangulation. First subset the wall outline by replacing the numbers with the lowest x-value that captures the tip portion of the cell. The `sphericalFit` command (cite) will fit a sphere to the subsetted points which we will extract the radius from. Then you can use the plot code to confirm how the fitting looks visually. 
+We must first calculate the radius of the tip and side before doing the automatic triangulation. First subset the wall outline by replacing the numbers with the lowest x-value that captures the tip portion of the cell. The `sphericalFit` command will fit a sphere to the subsetted points which we will extract the radius from. Then you can use the plot code to confirm how the fitting looks visually. 
 ```matlab
 %% Calculate tip and side radius
 subset_tip_sphere = before_xy_ridge_all(:,before_xy_ridge_all(1,:)>=190);
@@ -91,7 +91,7 @@ hold on; quickplot(subset_tip_sphere)
 nexttile;showfit(sphere_obj_after,'FaceAlpha',0.2,'FaceColor','g');
 hold on; quickplot(subset_tip_sphere_after);
 ```
-The tip is also determined here. Then the side radius is calculated similarly by subsetting the side areas of the wall outline and then using the `cylindricalFit` code (cite).
+The tip is also determined here. Then the side radius is calculated similarly by subsetting the side areas of the wall outline and then using the `cylindricalFit` code. Both codes used in this section were taken from: Matt J (2021). Object-oriented tools to fit/plot conics and quadrics (https://www.mathworks.com/matlabcentral/fileexchange/87584-object-oriented-tools-to-fit-plot-conics-and-quadrics), MATLAB Central File Exchange. Retrieved June, 2021.
 ```matlab
 tip = max(before_xy_ridge_all(1,:));
 side_ridge = before_xy_ridge_all(:,before_xy_ridge_all(1,:)<=150 & before_xy_ridge_all(1,:)>=0);
@@ -149,6 +149,7 @@ nexttile;trisurf(tri_all2_before.ConnectivityList,subset_all2_before(1,:),subset
     'FaceAlpha',0.3);axis equal
 set(gcf,'Position',[100 100 1000 500])
 ```
+![test text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig5.png)
 You can also then confirm the triangulation in the unturgid configuration is correct. If the beads are in the right order, then it should be.
 ```matlab
 tiledlayout(1,2);nexttile
@@ -187,7 +188,7 @@ hold on; quickplot(after_xy_ridge_all)
 set(gcf,'Position',[100 100 1000 500])
 ```
 ## Long Axis
-Depending on the cropping or angling of the cell, we need to re-establish the long axis of the cell. In ImageJ, we need to look at the xy and xz planes of the cell. (insert photo). Draw a line through the center of the cell in both planes and input the angle into the code below. This is done for the cell in both configurations. The code after is just for plotting the rotated 2D ridge for visualization. 
+Depending on the cropping or angling of the cell, we need to re-establish the long axis of the cell. In ImageJ, we need to look at the xy and xz planes of the cell.  Draw a line through the center of the cell in both planes and input the angle into the code below. This is done for the cell in both configurations. The code after is just for plotting the rotated 2D ridge for visualization. ![test text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig6.png).![test text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig7.png)
 ```matlab
 xz_angle = -0.95;xy_angle = -8.71; 
 new_long_axis = get_long_axis(xz_angle,xy_angle);
@@ -298,3 +299,4 @@ nexttile;plot_bins_error(angle_bins,bins_angles_mid,ww_angles_circ_tens_t_new2,w
 nexttile;plot_bins_error_single(angle_bins,bins_angles_mid,ww_angles_K_t_new2,'m');ylim([0,150]);title('K');xlabel('Local Angle')
 set(gcf,'Position',[100 100  1098 318])
 ```
+![test text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig8.png).
