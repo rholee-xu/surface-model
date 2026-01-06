@@ -1,12 +1,12 @@
 # surface-model code repository
 
-This repository contains code used to run the surface-morphology inference scheme, and also code for the simulated cell generation and inference. Besides the code for the simulation portion and parameter sensitivity study portion, the inference procedure on experimental cells is detailed in full below. For any questions or concerns about the code, please email rxu3@wpi.edu.
+This repository contains code used to run the surface-morphology inference scheme, and also code for the simulated cell generation and inference. Besides the code for the simulation portion and parameter sensitivity study portion, the inference procedure on experimental cells is detailed in full below. The code shown below is also available in the `code_demo.m` file. For any questions or concerns about the code, please email rxu3@wpi.edu.
 
 #### Elastic deformation code
-To generate simulated cells, run main_material_function.m with appropriate inputs.
+To generate simulated cells, run `main_material_function.m` with appropriate inputs.
 
 #### Simulated inference procedure
-Main simulation inference procedure is detailed in sim100_run_example.m. This is used to generate the 100 cells, but can be done for any trial number, noise number, triangulation size. Data for ground truth is in the Run_dif_dradients.mat file
+Main simulation inference procedure is detailed in `sim100_run_example.m`. This is used to generate the 100 cells, but can be done for any trial number, noise number, triangulation size. Data for ground truth is in the `Run_dif_dradients.mat` file
 
 # Code demo - FULL
 ## Loading raw data and bead selection
