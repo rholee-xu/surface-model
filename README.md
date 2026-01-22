@@ -1,17 +1,18 @@
-# surface-model code repository
+# Surface Morphology-based Inference Method
 
-This repository contains code used to run the surface-morphology inference scheme, and also code for the simulated cell generation and inference. Besides the code for the simulation portion and parameter sensitivity study portion, the inference procedure on experimental cells is detailed in full below. To begin, you can download the 4 .csv files included as an example. And if not manually choosing beads, you can download `example_beads.mat` for the bead positions already chosen. The code shown below is also available in the `code_demo.m` file. For any questions or concerns about the code, please email rxu3@wpi.edu.
+This repository contains code used to run the surface morphology-based inference scheme detailed in the manuscript "A surface morphology-based inference method for the cell wall elasticity profile in tip-growing cells", which can be found here: https://www.biorxiv.org/content/10.1101/2025.09.17.676748v3. The aim of this methodology is to infer the spatial bulk modulus gradient in tip-growing cells, given a subset of marker points that can be tracked before and after cell plasmolysis. Besides the code demo of the pipeline in experimental cells, we have included information on how to generate simulated cells and run the inference pipeline on a set of simulated cells. 
+<p align="center">
+ <img src="https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_summary.png" alt="drawing" width="600"/>
+ </p>
+To begin the inference pipeline on experimental datasets, one will need the cell wall outline data and marker point data in both cell configurations (the turgid and unturgid). To summarize, the pipeline described below will first guide you through how to select a subset of matching marker points in the two configurations. After setting up the automated surface triangulation and setting up other cell parameters, the code can begin to infer the geometric parameters (elastic stretch ratios, curvatures, tensions, and elastic moduli). The final result of the code will bin the triangulation results along the local angle of the cell (tip at 0 degrees). The code shown below is available in the `code_demo.m` file. For any questions or concerns about the code, please email rxu3@wpi.edu.
 
-#### Elastic deformation code
-To generate simulated cells, run `main_material_function.m` with appropriate inputs.
+### Simulated inference procedure
+To generate simulated cells, run `main_material_function.m` with appropriate inputs. This code is for a hyphoid shape but can be adapted to take in other curved cell shapes. Main simulation inference procedure is detailed in `sim100_run_example.m`. This is used to generate the 100 cells, but can be done for any trial number, noise number, triangulation size. Data for ground truth cells is available in the `Run_dif_dradients.mat` file
 
-#### Simulated inference procedure
-Main simulation inference procedure is detailed in `sim100_run_example.m`. This is used to generate the 100 cells, but can be done for any trial number, noise number, triangulation size. Data for ground truth is in the `Run_dif_dradients.mat` file
-
-# Code demo - FULL
+# Code demo - inference procedure
 ## Loading raw data and bead selection
 
-The function `get_ridge_new.m` will load the .csv output of Ridge Detection in ImageJ. The two inputs are the lowest and highest z-stack numbers you want read. The function `get_beads.m` will read the .csv file of the output of RS-FISH in ImageJ. 
+To begin, one should download the code included in the "inference_procedure" folder and download the 4 .csv files included to use as an example. If not manually choosing beads, you can download `example_beads.mat` for the bead positions already chosen in this example experimental dataset. The function `get_ridge_new.m` will load the .csv output of Ridge Detection in ImageJ. The two inputs are the lowest and highest z-stack numbers you want read. The function `get_beads.m` will read the .csv file of the output of RS-FISH in ImageJ. 
 ``` matlab
 before_xy_ridge_all = get_ridge_new('ridge_before.csv',28,100); 
 after_xy_ridge_all = get_ridge_new('ridge_after.csv',28,100);
@@ -29,14 +30,18 @@ quickscatter(beads_before); hold on; quickscatter(beads_after);
 
  % beads_after(1,:) = beads_after(1,:) - 10;
  % beads_after(2,:) = beads_after(2,:) - 10;
- % beads_after(3,:) = beads_after(3,:) +10;
+ % beads_after(3,:) = beads_after(3,:) + 10;
 
 %% Subset beads for better visualization
 beads_subset_after = beads_after(:,beads_after(2,:) >70);
 beads_subset_before = beads_before(:,beads_before(2,:) >70);
 quickscatter(beads_subset_before); hold on; quickscatter(beads_subset_after);
 ```
-Each time you scatter a set of beads, you will choose the subset by clicking on them in the MATLAB window. ![alt text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig1.png) Once you save them to the variable `cursor_info`, you can use the code below to save the bead information into a subset. If you are adding bead information to an existing subset, make sure you append it to the existing variable.
+Each time you scatter a set of beads, a subset of them can be saved manually by clicking on them in the MATLAB window. 
+<p align="center">
+ <img src="https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig1.png" alt="drawing" width="800"/>
+ </p> 
+ Once you save them to the variable `cursor_info`, you can use the code below to save the bead information into a subset. If you are adding bead information to an existing subset, it should be appended to the existing variable.
 ```matlab
 subset = zeros(3,size(cursor_info,2));
 for n = 1:size(cursor_info,2)
@@ -44,7 +49,7 @@ for n = 1:size(cursor_info,2)
 end
 
 subset_all_after = subset;
-% subset_all_after = [subset_all_after subset];
+% subset_all_after = [subset_all_after subset]; % for when you are appending to an existing subset
 ```
 I will typically choose the set of beads in the turgid first, then plot them onto the larger set to then choose the corresponding unturgid set.
 ```matlab
@@ -57,7 +62,9 @@ Once you are done choosing two subsets of beads, you can bring the adjusted set 
 % subset_all_after(2,:) = subset_all_after(2,:) + 10;
 % subset_all_after(3,:) = subset_all_after(3,:) - 10;
 ```
-The bead index order for the turgid and unturgid set must be the same in order for the triangulation connectivity to be the same. Therefore, we sort the beads by x-position first and then visually check the index number using the code `check_beads_order.m`. For the values that don't match, open the variable in MATLAB and manually copy and paste the bead positions to the right index. ![alt text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig2.png)
+This step is repeated to get two sets of beads which are saved to the variables `subset_all_before`, `subset_all_after`, `subset_all2_before`, and `subset_all2_after`. The bead index order for the turgid and unturgid set must be the same in order for the triangulation connectivity to be the same. Therefore, we sort the beads by x-position first and then visually check the index number using the code `check_beads_order.m`. For the values that don't match, open the variable in MATLAB and manually copy and paste the bead positions to the right index. <p align="center">
+ <img src="https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig2.png" alt="drawing" width="500"/>
+ </p> 
 
 ```matlab
 [~,order1] =  sort(subset_all2_after(1,:));
@@ -74,7 +81,7 @@ check_beads_order(subset_all_before,subset_all_after)
 ```
 
 ## Radius and tip calculation
-We must first calculate the radius of the tip and side before doing the automatic triangulation. First subset the wall outline by replacing the numbers with the lowest x-value that captures the tip portion of the cell. The `sphericalFit` command will fit a sphere to the subsetted points which we will extract the radius from. Then you can use the plot code to confirm how the fitting looks visually. 
+We must first calculate the radius of the tip and side before doing the automatic triangulation. The wall outline needs to be subsetted to the tip portion to estimate the radius of the tip. To subset, we replace the numbers seen below with the lowest x-value that captures the tip portion of the cell. The `sphericalFit` command will fit a sphere to the subsetted points which we will extract the radius from. Then the plot code can be used to confirm how the fitting looks visually. 
 ```matlab
 %% Calculate tip and side radius
 subset_tip_sphere = before_xy_ridge_all(:,before_xy_ridge_all(1,:)>=190);
@@ -103,7 +110,7 @@ showfit(cyl,'FaceAlpha',0.2,'FaceColor','g');hold on; quickplot(side_ridge)
 
 ## Bead sorting and automatic triangulation
 
-With the bead subsets ready, we can now do the stereographic projection. The code `project_points.m` will apply the stereographic projection using information from the wall outline and the radius. Then the same connectivity is applied to the points in the unturgid.
+With the bead subsets ready, we perform the stereographic projection to create the automated triangulation (see Fig 1). The code `project_points.m` will apply the stereographic projection using information from the wall outline and the radius. Then the same connectivity is applied to the points in the unturgid.
 ```matlab
 
 tiledlayout(1,2);nexttile
@@ -129,8 +136,15 @@ trisurf(tri_all2_before.ConnectivityList,subset_all2_before(1,:),subset_all2_bef
     'FaceAlpha',0.3);axis equal
 text(IC_all2(:,1),IC_all2(:,2),IC_all2(:,3),string(1:size(tri_all2_before.ConnectivityList,1)))
 ```
-![test text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig3.png)![alt text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig4.png)
-Then, manually enter the triangulation of the triangles you want to delete below. These will typically be triangles spanning the top of the cell where there is no wall outline and less marker points available. The two sets of code are for the two sets of triangulations. You could also add new connectivity manually using the triangle indices you want to connect, like seen below.
+<p align="center">
+ <img src="https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig3.png" alt="drawing" width="800"/>
+ </p> 
+ 
+<p align="center">
+ <img src="https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig4.png" alt="drawing" width="800"/>
+ </p> 
+Then, manually enter the triangulation of the triangles you want to delete below. These will typically be triangles spanning the top of the cell where there is no wall outline and less marker points available. The two sets of code are for the two sets of triangulations. New connectivity can be added manually using the triangle indices you want to connect, like seen below. 
+
 ```matlab
 delete([20,21,18,19,11,14,2,10,28,5],:) = [];
 delete = [delete;20,24,28;20,21,28];
@@ -149,8 +163,12 @@ nexttile;trisurf(tri_all2_before.ConnectivityList,subset_all2_before(1,:),subset
     'FaceAlpha',0.3);axis equal
 set(gcf,'Position',[100 100 1000 500])
 ```
-![test text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig5.png)
-You can also then confirm the triangulation in the unturgid configuration is correct. If the beads are in the right order, then it should be.
+
+<p align="center">
+ <img src="https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig5.png" alt="drawing" width="800"/>
+ </p> 
+Then confirm the triangulation in the unturgid configuration is correct. 
+
 ```matlab
 tiledlayout(1,2);nexttile
 trisurf(tri_all_after.ConnectivityList,subset_all_after(1,:),subset_all_after(2,:),subset_all_after(3,:),...
@@ -160,7 +178,7 @@ nexttile;trisurf(tri_all2_after.ConnectivityList,subset_all2_after(1,:),subset_a
 set(gcf,'Position',[100 100 1000 500])
 ```
 ## Bead Projection
-
+To make the two surface data compatible, we project the marker points to the closest point on the wall outline (see Fig S1E). The code is optimized to remove projections that are too far, but the projections should be visually inspected in both configurations, especially in the areas where the outline data stops (at the top and bottom planes). 
 ```matlab
 [subset_ob_before,subset_ob_after,tri_ob_before,tri_ob_after,iz] = ...
     bead_projection(subset_all_before,subset_all_after,before_xy_ridge_all,after_xy_ridge_all,tri_all_before);
@@ -188,7 +206,13 @@ hold on; quickplot(after_xy_ridge_all)
 set(gcf,'Position',[100 100 1000 500])
 ```
 ## Long Axis
-Depending on the cropping or angling of the cell, we need to re-establish the long axis of the cell. In ImageJ, we need to look at the xy and xz planes of the cell.  Draw a line through the center of the cell in both planes and input the angle into the code below. This is done for the cell in both configurations. The code after is just for plotting the rotated 2D ridge for visualization. ![test text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig6.png).![test text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig7.png)
+Depending on the cropping or angling of the cell, we re-establish the long axis of the cell to ensure the circumferential and meridional directions are optimized. In ImageJ, we check the xy and xz planes of the cell.  Draw a line through the center of the cell in both planes and input the angle into the code below. This is done for the cell in both configurations. The code after is just for plotting the rotated 2D ridge for visualization. <p align="center">
+ <img src="https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig6.png" alt="drawing" width="800"/>
+ </p> 
+ <p align="center">
+ <img src="https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig7.png" alt="drawing" width="800"/>
+ </p> 
+ 
 ```matlab
 xz_angle = -0.95;xy_angle = -8.71; 
 new_long_axis = get_long_axis(xz_angle,xy_angle);
@@ -290,7 +314,7 @@ mm_angle_all_test = [mm_angle1_sub_test,mm_angle2_sub_test];
 [ww_angles_K_t_new2,~,~,~,ww_cell_K,ww_tri] = bin_thetas([K_ob_test(new_i_test),K_ob2_test(new_i2_test)],[angles_T1_sub_test,angles_T2_sub_test],binsA,1,0,s_all,1,1);
 [ww_angles_mu_t_new2,~,~,~,ww_cell_mu] = bin_thetas([mu_ob_test(new_i_test),mu_ob2_test(new_i2_test)],[angles_T1_sub_test,angles_T2_sub_test],binsA,1,0,s_all,1,1);
 ```
-This final code allows you to plot the resulting parameters along the local angle.
+Finally, this code plots the resulting parameters along the local angle to observe their spatial profiles.
 ```matlab
 tiledlayout(1,4)
 nexttile;plot_bins_error(angle_bins,bins_angles_mid,ww_angles_circ_stretch_t_new2,ww_angles_mer_stretch_t_new2);ylim([0.95,1.3]);title('Stretch');xlabel('Local Angle')
@@ -299,4 +323,6 @@ nexttile;plot_bins_error(angle_bins,bins_angles_mid,ww_angles_circ_tens_t_new2,w
 nexttile;plot_bins_error_single(angle_bins,bins_angles_mid,ww_angles_K_t_new2,'m');ylim([0,150]);title('K');xlabel('Local Angle')
 set(gcf,'Position',[100 100  1098 318])
 ```
-![test text](https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig8.png).
+<p align="center">
+ <img src="https://github.com/rholee-xu/surface-model/blob/main/figures/code_demo_fig8.png" alt="drawing" width="1000"/>
+ </p> 
