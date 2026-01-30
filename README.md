@@ -12,7 +12,9 @@ To generate simulated cells, run `main_material_function.m` with appropriate inp
 # Code demo - inference procedure
 ## Loading raw data and bead selection
 
-To begin, one should download the code included in the "inference_procedure" folder and download the 4 .csv files included to use as an example. If not manually choosing beads, you can download `example_beads.mat` for the bead positions already chosen in this example experimental dataset. The function `get_ridge_new.m` will load the .csv output of Ridge Detection in ImageJ. The two inputs are the lowest and highest z-stack numbers you want read. The function `get_beads.m` will read the .csv file of the output of RS-FISH in ImageJ. 
+To begin, one should download the code included in the "inference_procedure" folder and download the 4 .csv files included to use as an example. If not manually choosing beads, you can download `example_beads.mat` for the bead positions already chosen in this example experimental dataset. For generating the raw data files, see documentation for RS-FISH (https://www.nature.com/articles/s41592-022-01669-y) and Ridge Detection (https://imagej.net/plugins/ridge-detection). The file "RawData_Settings.xslx" contains the information for the specific settings we used.
+
+The function `get_ridge_new.m` will load the .csv output of Ridge Detection in ImageJ. The two inputs are the lowest and highest z-stack numbers you want read. The function `get_beads.m` will read the .csv file of the output of RS-FISH in ImageJ. 
 ``` matlab
 before_xy_ridge_all = get_ridge_new('ridge_before.csv',28,100); 
 after_xy_ridge_all = get_ridge_new('ridge_after.csv',28,100);
