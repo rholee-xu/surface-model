@@ -9,6 +9,9 @@ To begin the inference pipeline on experimental datasets, one will need the cell
 ### Simulated inference procedure
 To generate simulated cells, run `main_material_function.m` with appropriate inputs. This code is for a hyphoid shape but can be adapted to take in other curved cell shapes. Main simulation inference procedure is detailed in `sim100_run_example.m`. This is used to generate the 100 cells, but can be done for any trial number, noise number, triangulation size. Data for ground truth cells is available in the `Run_dif_dradients.mat` file
 
+## Software installation
+To use the software mentioned in the procedure, namely RS-FISH and Ridge Detection, first have ImageJ installed. Ridge Detection should be a built-in plugin after downloading ImageJ, and can be easily applied to microscope images in 8-bit. The RS-FISH software was downloaded following instructions on the method's own GitHub documentation, which can be found here: https://github.com/PreibischLab/RS-FISH/tree/master?tab=readme-ov-file#download. Although command line use is available, we installed as an ImageJ plug-in for ease of use. All other code contained here can be downloaded and run on MATLAB.
+
 # Code demo - inference procedure
 ## Loading raw data and bead selection
 
